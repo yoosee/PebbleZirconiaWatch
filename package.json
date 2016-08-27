@@ -1,0 +1,54 @@
+{
+    "author": "yoosee@gmail.com",
+    "dependencies": {},
+    "keywords": [],
+    "name": "zirconia-watch",
+    "pebble": {
+        "capabilities": [
+            "location",
+            "configurable",
+            "health"
+        ],
+        "displayName": "Zirconia Watch",
+        "enableMultiJS": true,
+        "messageKeys": [
+            "TEMPERATURE",
+            "CONDITIONS",
+            "IS_FAHRENHEIT",
+            "IS_STEPS_ENABLED",
+            "COLOR_BACKGROUND",
+            "COLOR_CLOCK",
+            "COLOR_STEPS",
+            "COLOR_WEATHER",
+            "COLOR_DATE"
+        ],
+        "projectType": "native",
+        "resources": {
+            "media": [
+                {
+                    "characterRegex": "[0-9A-Z: ]",
+                    "file": "fonts/Flipbash.otf",
+                    "name": "FONT_INFO_20",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9: ]",
+                    "file": "fonts/Flipbash.otf",
+                    "name": "FONT_CLOCK_42",
+                    "targetPlatforms": null,
+                    "type": "font"
+                }
+            ]
+        },
+        "sdkVersion": "3",
+        "targetPlatforms": [
+            "chalk"
+        ],
+        "uuid": "94277f12-2a6a-4387-a8e8-a02e4bbe3469",
+        "watchapp": {
+            "watchface": false
+        }
+    },
+    "version": "1.0.0"
+}
