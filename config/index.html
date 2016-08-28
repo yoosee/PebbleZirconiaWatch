@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <title>Zirconia Watchface</title>
+  <link rel='stylesheet' type='text/css' href='css/slate.min.css'>
+  <script src='js/slate.min.js'></script>
+  <style>
+  .title {
+    padding: 15px 10px;
+    text-transform: uppercase;
+    font-family: 'PT Sans', sans-serif;
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #888888;
+    text-align: center;
+  }
+  </style>
+  </head>
+
+  <body>
+    <h1 class='title'>Zirconia Watchface</h1>
+
+    <div class='item-container'>
+      <div class='item-container-content'>
+        <div class='item'>
+					Watchface configurations.
+        </div>
+      </div>
+    </div>
+
+		<div class="item-container">
+			<div class="item-container-header">Health Steps</div>
+			<div class="item-container-content">
+				<label class="item">
+					Display Health Steps or not.
+					<input id="is_steps" type="checkbox" class="item-toggle" checked>
+				</label>
+			</div>
+			<div class="item-container-footer">
+				Display or Hide Pebble Health Steps counts.
+			</div>
+		</div>
+		
+		<div class="item-container">
+			<div class="item-container-header">Temparature Unit (C/F)</div>
+			<div class="item-container-content">
+				<label class="item">
+					Temparature unit C / F.
+					<input id="is_fahrenheit" type="checkbox" class="item-toggle">
+				</label>
+			</div>
+			<div class="item-container-footer">
+				[checked] represents Fahrenheit, otherwise Celsius.
+			</div>
+		</div>
+		
+    <div class='item-container'>
+      <div class='item-container-header'>Color Configuration</div>
+
+      <div class='item-container-content'>
+        <label class='item'> Background Color
+          <input id='background_color_picker' type='text' class='item-color item-color-sunny' value='#000000'>
+        </label>
+      </div>
+			
+      <div class='item-container-content'>
+        <label class='item'> Clock Color
+          <input id='clock_color_picker' type='text' class='item-color item-color-sunny' value='#ffffff'>
+        </label>
+      </div>
+			
+      <div class='item-container-content'>
+        <label class='item'> Health Steps Color
+          <input id='steps_color_picker' type='text' class='item-color item-color-sunny' value='#482748'>
+        </label>
+      </div>
+			
+      <div class='item-container-content'>
+        <label class='item'> Weather Color
+          <input id='weather_color_picker' type='text' class='item-color item-color-sunny' value='#4cb4db'>
+        </label>
+      </div>
+			
+      <div class='item-container-content'>
+        <label class='item'> Date Color
+          <input id='date_color_picker' type='text' class='item-color item-color-sunny' value='#e35462'>
+        </label>
+      </div>
+			
+      <div class='item-container-footer'>
+        Choose the app's color for Background, Face (number and dots), Steps, Weather and Date 
+      </div>
+    </div>
+
+		<div class='item-container'>
+			<div class='button-container'>
+				<input id='submit_button' type='button' class='item-button' value='SAVE'>
+			</div>
+		</div>
+	</body>
+  <script>
+  function getConfigData() {
+    var isFahrenheitCheckbox = document.getElementById('is_fahrenheit');
+    var isStepsCheckbox = document.getElementById('is_steps');
+    var backgroundColorPicker = document.getElementById('background_color_picker');
+    var clockColorPicker = document.getElementById('clock_color_picker');
+    var stepsColorPicker = document.getElementById('steps_color_picker');
+    var weatherColorPicker = document.getElementById('weather_color_picker');
+    var dateColorPicker = document.getElementById('date_color_picker');
+ 
+    var options = {
+      'is_fahrenheit': isFahrenheitCheckbox.checked,
+      'is_steps': isStepsCheckbox.checked,
+      'background_color': backgroundColorPicker.value,
+      'clock_color': clockColorPicker.value,
+      'steps_color': stepsColorPicker.value,
+      'weather_color': weatherColorPicker.value,
+      'date_color': dateColorPicker.value,
+    };
+
+    // Save for next launch
+    localStorage['is_fahrenheit'] = options['is_fahrenheit'];
+    localStorage['is_steps'] = options['is_steps'];
+    localStorage['background_color'] = options['background_color'];
+    localStorage['clock_color'] = options['clock_color'];
+    localStorage['steps_color'] = options['steps_color'];
+    localStorage['weather_color'] = options['weather_color'];
+    localStorage['date_color'] = options['date_color'];
+
+    console.log('Got options: ' + JSON.stringify(options));
+    return options;
+  }
+
+  function getQueryParam(variable, defaultValue) {
+    var query = location.search.substring(1);
+    var vars = query.split('&');
+    for (var i = 0; i < vars.length; i++) {
+      var pair = vars[i].split('=');
+      if (pair[0] === variable) {
+        return decodeURIComponent(pair[1]);
+      }
+    }
+    return defaultValue || false;
+  }
+ 
+  var submitButton = document.getElementById('submit_button');
+  submitButton.addEventListener('click', function() {
+    console.log('Submit');
+
+    // Set the return URL depending on the runtime environment
+    var return_to = getQueryParam('return_to', 'pebblejs://close#');
+    document.location = return_to + encodeURIComponent(JSON.stringify(getConfigData()));
+  });
+
+  (function() {
+    var isFahrenheitCheckbox = document.getElementById('is_fahrenheit');
+    var isStepsCheckbox = document.getElementById('is_steps');
+    var backgroundColorPicker = document.getElementById('background_color_picker');
+    var clockColorPicker = document.getElementById('clock_color_picker');
+    var stepsColorPicker = document.getElementById('steps_color_picker');
+    var weatherColorPicker = document.getElementById('weather_color_picker');
+    var dateColorPicker = document.getElementById('date_color_picker');
+
+    // Load any previously saved configuration, if available
+    if(localStorage['is_fahrenheit']) {
+      isFahrenheitCheckbox.checked = JSON.parse(localStorage['is_fahrenheit']);
+      isStepsCheckbox.checked = JSON.parse(localStorage['is_steps']);
+      backgroundColorPicker.value = localStorage['background_color'];
+      clockColorPicker.value = localStorage['clock_color'];
+      stepsColorPicker.value = localStorage['steps_color'];
+      weatherColorPicker.value = localStorage['weather_color'];
+      dateColorPicker.value = localStorage['date_color'];
+    }
+  })();
+  </script>
+</html>
