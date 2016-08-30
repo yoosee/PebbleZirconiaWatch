@@ -282,9 +282,11 @@ static void main_window_unload(Window *window) {
 
 static void init(void) {
   s_main_window = window_create();
-  window_set_background_color(s_main_window, GColorBlack); // default background color
-    
+  
   setup_colors();
+  GColor color_background = GColorFromHEX(colorcode_background);
+  window_set_background_color(s_main_window, color_background); 
+
   setup_callbacks();
   
   window_set_window_handlers(s_main_window, (WindowHandlers) {
