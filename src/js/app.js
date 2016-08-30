@@ -99,7 +99,6 @@ function fetchWUWeather(lat, lon) {
 }
 
 var fetchWeatherGovWeather = function(lat, lon) {
-
   var params = {};
   params.url = 'http://forecast.weather.gov/MapClick.php?lat=' + lat + '&lon=' + lon + '&FcstType=json';
   console.log('URL: ' + params.url);
@@ -139,8 +138,8 @@ Pebble.addEventListener('appmessage',
 // Configuration
 
 Pebble.addEventListener('showConfiguration', function() {
-  //var url = 'https://rawgit.com/yoosee/PebbleWatchObsidian/master/config/index.html'; // development
-  var url = 'https://cdn.rawgit.com/yoosee/PebbleWatchObsidian/4da3aa36bba44ddb6a05417cca57afd5135799a4/config/index.html' // produuction URL in rawgit.com should be unique like commit hash.
+  var url = 'https://rawgit.com/yoosee/PebbleZirconiaWatch/master/config/index.html'; // development
+  //var url = 'https://cdn.rawgit.com/yoosee/PebbleWatchObsidian/4da3aa36bba44ddb6a05417cca57afd5135799a4/config/index.html' // produuction URL in rawgit.com should be unique like commit hash.
   console.log('Showing configuration page: ' + url);
 
   Pebble.openURL(url);

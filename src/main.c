@@ -31,12 +31,10 @@ static void setup_colors() {
 static void update_colors() {
   setup_colors();
   window_set_background_color(s_main_window, GColorFromHEX(colorcode_background));
-  //proc_bg_update...
   text_layer_set_text_color(s_clock_label, GColorFromHEX(colorcode_clock));
   text_layer_set_text_color(s_date_label, GColorFromHEX(colorcode_date));
   text_layer_set_text_color(s_steps_label, GColorFromHEX(colorcode_steps));
   text_layer_set_text_color(s_weather_label, GColorFromHEX(colorcode_weather));  
-  //proc_hands_update...
 }
 
 /* *** Bluetooth Callback *** */
@@ -202,7 +200,7 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
   bool is_steps_enabled = persist_exists(KEY_IS_STEPS_ENABLED) ? persist_read_bool(KEY_IS_STEPS_ENABLED) : true;
   update_steps_label(is_steps_enabled);
   
-  // Get weather update every WEATHER_UPDATE_INTERVAL_MINUTES minutes. default would be 30 min
+  // Get weather update every WEATHER_UPDATE_INTERVAL_MINUTES minutes. default would be 30 min (0 and 30 of each hour)
   if(tick_time->tm_min % WEATHER_UPDATE_INTERVAL_MINUTES == 0) { 
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
