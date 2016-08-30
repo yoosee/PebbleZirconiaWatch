@@ -26,13 +26,19 @@ void health_handler(HealthEventType event, void *context) {
     {
         case HealthEventSignificantUpdate:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventSignificantUpdate event");
-            //break;
+            break;
         case HealthEventMovementUpdate:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventMovementUpdate event");
 //            update_health();
             break;
         case HealthEventSleepUpdate:
             APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventSleepUpdate event");
+            break;
+        case HealthEventMetricAlert:
+            APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventMetricAlert event");
+            break;
+        case HealthEventHeartRateUpdate:
+            APP_LOG(APP_LOG_LEVEL_INFO, "New HealthService HealthEventHeartRateUpdate event");
             break;
     }
 }

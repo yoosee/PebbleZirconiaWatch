@@ -1,8 +1,8 @@
 {
-    "author": "yoosee@gmail.com",
+    "author": "yoosee",
     "dependencies": {},
     "keywords": [],
-    "name": "zirconia-watch",
+    "name": "zirconia",
     "pebble": {
         "capabilities": [
             "location",
@@ -26,11 +26,10 @@
         "resources": {
             "media": [
                 {
-                    "characterRegex": "[0-9A-Z: ]",
-                    "file": "fonts/Flipbash.otf",
-                    "name": "FONT_INFO_20",
+                    "file": "images/bluetooth-red-20x20.png",
+                    "name": "BLUETOOTH_DISCONNECTED_ICON",
                     "targetPlatforms": null,
-                    "type": "font"
+                    "type": "bitmap"
                 },
                 {
                     "characterRegex": "[0-9: ]",
@@ -38,16 +37,25 @@
                     "name": "FONT_CLOCK_42",
                     "targetPlatforms": null,
                     "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9A-Z: ]",
+                    "file": "fonts/Flipbash.otf",
+                    "name": "FONT_INFO_20",
+                    "targetPlatforms": null,
+                    "type": "font"
                 }
             ]
         },
         "sdkVersion": "3",
         "targetPlatforms": [
-            "chalk"
+            "basalt",
+            "chalk",
+            "diorite"
         ],
         "uuid": "94277f12-2a6a-4387-a8e8-a02e4bbe3469",
         "watchapp": {
-            "watchface": false
+            "watchface": true
         }
     },
     "version": "1.0.0"

@@ -4,7 +4,7 @@
 #include "health.h"
 
 static Window *s_main_window;
-static Layer *s_bg_layer, *s_date_layer, *s_hands_layer;
+static Layer *s_watch_layer;
 
 static TextLayer *s_clock_label, *s_date_label, *s_weather_label, *s_steps_label;
 static GFont s_clock_font, s_date_font, s_weather_font, s_steps_font;
@@ -52,13 +52,21 @@ static void bluetooth_callback(bool connected) {
 
 /* *** proc layer updates *** */
 
-static void proc_date_update (Layer *layer, GContext *ctx) {
+static void update_time() {
+  time_t now = time(NULL);  
+  struct tm *t = localtime(&now);
+  static char s_time_buffer[10];
+  strftime(s_time_buffer, sizeof(s_time_buffer), "%H:%M", t);
+  text_layer_set_text(s_clock_label, s_time_buffer);
+}
+
+static void update_date() {
   time_t now = time(NULL);
   struct tm *t = localtime(&now);
   strftime(s_date_buffer, sizeof(s_date_buffer), "%a %d", t);
   char *s = s_date_buffer;
   while(*s) *s++ = toupper((int)*s);
-  text_layer_set_text(s_date_label, s_date_buffer);
+  text_layer_set_text(s_date_label, s_date_buffer);  
 }
 
 /* *** focus handler *** */
@@ -97,6 +105,13 @@ static void update_weather() {
     APP_LOG(APP_LOG_LEVEL_INFO, "Weather: %s", weather_label_buffer);
     text_layer_set_text(s_weather_label, weather_label_buffer);
   //}
+}
+
+/* *** proc watch layer update *** */
+
+static void update_watch_layer (Layer *layer, GContext *ctx) {
+  update_date();
+  update_time();
 }
 
 /* *** callbacks *** */
@@ -179,14 +194,6 @@ static void setup_callbacks() {
 
 /* *** Tick handlers *** */
 
-static void update_time() {
-  time_t now = time(NULL);  
-  struct tm *t = localtime(&now);
-  static char s_time_buffer[10];
-  strftime(s_time_buffer, sizeof(s_time_buffer), "%H:%M", t);
-  text_layer_set_text(s_clock_label, s_time_buffer);
-}
-
 static void handle_second_tick(struct tm *tick_time, TimeUnits units_changed) {
   if(tick_time->tm_sec % 20 == 0) {  
     update_time();
@@ -218,12 +225,13 @@ static void main_window_load(Window *window) {
   // Read color code
   setup_colors();
   
-  // Create date layer and add to main layer
-  s_date_layer = layer_create(bounds);
-  layer_set_update_proc(s_date_layer, proc_date_update);
-  layer_add_child(window_layer, s_date_layer);
+  // Create Watch layer and add to main layer
+  s_watch_layer = layer_create(bounds);
+  layer_set_update_proc(s_watch_layer, update_watch_layer);
+  layer_add_child(window_layer, s_watch_layer);
 
-  s_date_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(115, 95), bounds.size.w, 24));
+  // Create date layer
+  s_date_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(115, 107), bounds.size.w, 24));
 
   GColor color_date = GColorFromHEX(colorcode_date);
   text_layer_set_text(s_date_label, s_date_buffer);
@@ -232,11 +240,10 @@ static void main_window_load(Window *window) {
   s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_INFO_20));
   text_layer_set_font(s_date_label, s_date_font);
   text_layer_set_text_alignment(s_date_label, GTextAlignmentCenter);
-  layer_add_child(s_date_layer, text_layer_get_layer(s_date_label));
+  layer_add_child(s_watch_layer, text_layer_get_layer(s_date_label));
   
   // Create weather and templature layer
-  s_weather_label = text_layer_create(
-    GRect(0, PBL_IF_ROUND_ELSE(28,14), bounds.size.w, 50));
+  s_weather_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(28,22), bounds.size.w, 50));
 
   GColor color_weather = GColorFromHEX(colorcode_weather);  
   text_layer_set_background_color(s_weather_label, GColorClear);
@@ -246,11 +253,11 @@ static void main_window_load(Window *window) {
   
   s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_INFO_20));
   text_layer_set_font(s_weather_label, s_weather_font);
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_weather_label));
+  //layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_weather_label));
+  layer_add_child(s_watch_layer, text_layer_get_layer(s_weather_label));
   
   // Create Health Steps layer
-  s_steps_label = text_layer_create(
-    GRect(0, PBL_IF_ROUND_ELSE(138, 110), bounds.size.w, 24));
+  s_steps_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(138, 133), bounds.size.w, 24));
   
   GColor color_steps = GColorFromHEX(colorcode_steps);  
   text_layer_set_background_color(s_steps_label, GColorClear);
@@ -259,7 +266,15 @@ static void main_window_load(Window *window) {
   s_steps_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_INFO_20));
   text_layer_set_font(s_steps_label, s_steps_font);
   text_layer_set_text(s_steps_label, "00000");
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_steps_label));
+  layer_add_child(s_watch_layer, text_layer_get_layer(s_steps_label));
+  
+  // Create Bluetooth layer
+  s_bt_icon_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_DISCONNECTED_ICON);
+  s_bt_icon_layer = bitmap_layer_create(GRect(bounds.size.h/2-10, PBL_IF_ROUND_ELSE(5, 6), 20, 20)); // 20x20 size icon
+  bitmap_layer_set_bitmap(s_bt_icon_layer, s_bt_icon_bitmap);
+  layer_add_child(s_watch_layer, bitmap_layer_get_layer(s_bt_icon_layer));
+  // Show the correct state of the BT connection from the start
+  bluetooth_callback(connection_service_peek_pebble_app_connection());
 
   // Create Clock Layer 
   GColor color_clock = GColorFromHEX(colorcode_clock);
@@ -269,15 +284,25 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(s_clock_label, GTextAlignmentCenter);
   s_clock_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_CLOCK_42));
   text_layer_set_font(s_clock_label, s_clock_font);
-  layer_add_child(window_layer, text_layer_get_layer(s_clock_label));
-  update_time();
+  layer_add_child(s_watch_layer, text_layer_get_layer(s_clock_label));
+  //update_time();
 }
 
 static void main_window_unload(Window *window) {  
   
   fonts_unload_custom_font(s_clock_font);
+  fonts_unload_custom_font(s_date_font);
+  fonts_unload_custom_font(s_steps_font);
+  fonts_unload_custom_font(s_weather_font);
   text_layer_destroy(s_clock_label);
+  text_layer_destroy(s_steps_label);
+  text_layer_destroy(s_weather_label);
+  text_layer_destroy(s_date_label);
   
+  gbitmap_destroy(s_bt_icon_bitmap);
+  bitmap_layer_destroy(s_bt_icon_layer);
+  
+  layer_destroy(s_watch_layer);
 }
 
 static void init(void) {

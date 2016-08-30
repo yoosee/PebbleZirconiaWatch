@@ -138,8 +138,8 @@ Pebble.addEventListener('appmessage',
 // Configuration
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'https://rawgit.com/yoosee/PebbleZirconiaWatch/master/config/index.html'; // development
-  //var url = 'https://cdn.rawgit.com/yoosee/PebbleWatchObsidian/4da3aa36bba44ddb6a05417cca57afd5135799a4/config/index.html' // produuction URL in rawgit.com should be unique like commit hash.
+  //var url = 'https://rawgit.com/yoosee/PebbleZirconiaWatch/master/config/index.html'; // development
+  var url = 'https://cdn.rawgit.com/yoosee/PebbleZirconiaWatch/cd5d60cf22ee24284ddda346b178490a7573b114/config/index.html' // produuction URL in rawgit.com should be unique like commit hash.
   console.log('Showing configuration page: ' + url);
 
   Pebble.openURL(url);
