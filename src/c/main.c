@@ -73,6 +73,7 @@ static void update_date() {
 
 static void handle_focus(bool focus) {
   if (focus) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "focus: true");
     layer_mark_dirty(window_get_root_layer(s_main_window));
   }
 }
@@ -110,6 +111,8 @@ static void update_weather() {
 /* *** proc watch layer update *** */
 
 static void update_watch_layer (Layer *layer, GContext *ctx) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "update_watch_layer()");
+
   update_date();
   update_time();
 }
@@ -219,6 +222,8 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
 /* *** main window load & unload *** */
 
 static void main_window_load(Window *window) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "main_window_load()");
+
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
   
@@ -228,7 +233,7 @@ static void main_window_load(Window *window) {
   // Create Watch layer and add to main layer
   s_watch_layer = layer_create(bounds);
   layer_set_update_proc(s_watch_layer, update_watch_layer);
-  layer_add_child(window_layer, s_watch_layer);
+
 
   // Create date layer
   s_date_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(115, 107), bounds.size.w, 24));
@@ -286,9 +291,12 @@ static void main_window_load(Window *window) {
   text_layer_set_font(s_clock_label, s_clock_font);
   layer_add_child(s_watch_layer, text_layer_get_layer(s_clock_label));
   //update_time();
+  
+  layer_add_child(window_layer, s_watch_layer);
 }
 
 static void main_window_unload(Window *window) {  
+  APP_LOG(APP_LOG_LEVEL_INFO, "main_window_unload()");
   
   fonts_unload_custom_font(s_clock_font);
   fonts_unload_custom_font(s_date_font);
@@ -298,14 +306,16 @@ static void main_window_unload(Window *window) {
   text_layer_destroy(s_steps_label);
   text_layer_destroy(s_weather_label);
   text_layer_destroy(s_date_label);
-  
-  gbitmap_destroy(s_bt_icon_bitmap);
+
   bitmap_layer_destroy(s_bt_icon_layer);
+  gbitmap_destroy(s_bt_icon_bitmap);
   
   layer_destroy(s_watch_layer);
 }
 
 static void init(void) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "init()");
+
   s_main_window = window_create();
   
   setup_colors();
@@ -337,7 +347,10 @@ static void init(void) {
 }
 
 static void deinit(void) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "deinit()");
   tick_timer_service_unsubscribe();
+  connection_service_unsubscribe();
+  app_focus_service_unsubscribe();
   window_destroy(s_main_window);
 }
 

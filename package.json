@@ -9,7 +9,7 @@
             "configurable",
             "health"
         ],
-        "displayName": "Zirconia Watch",
+        "displayName": "Zirconia",
         "enableMultiJS": true,
         "messageKeys": [
             "TEMPERATURE",
