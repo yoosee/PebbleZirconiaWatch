@@ -5,3 +5,8 @@ Pebble Digital Watchface
 * Pebble Health Steps
 * Configurable Color
 
+## Resources
+
+### Font
+
+* [Flipbash](http://www.dafont.com/flipbash.font)
