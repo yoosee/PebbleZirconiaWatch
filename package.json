@@ -34,7 +34,7 @@
                 {
                     "characterRegex": "[0-9: ]",
                     "file": "fonts/Flipbash.otf",
-                    "name": "FONT_CLOCK_42",
+                    "name": "FONT_CLOCK_38",
                     "targetPlatforms": null,
                     "type": "font"
                 },
@@ -42,6 +42,13 @@
                     "characterRegex": "[0-9A-Z: ]",
                     "file": "fonts/Flipbash.otf",
                     "name": "FONT_INFO_20",
+                    "targetPlatforms": null,
+                    "type": "font"
+                },
+                {
+                    "characterRegex": "[0-9: ]",
+                    "file": "fonts/Flipbash.otf",
+                    "name": "FONT_CLOCK_42",
                     "targetPlatforms": null,
                     "type": "font"
                 }
@@ -58,5 +65,5 @@
             "watchface": true
         }
     },
-    "version": "1.0.0"
+    "version": "1.1.0"
 }

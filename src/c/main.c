@@ -73,7 +73,7 @@ static void update_date() {
 
 static void handle_focus(bool focus) {
   if (focus) {
-    APP_LOG(APP_LOG_LEVEL_INFO, "focus: true");
+    //APP_LOG(APP_LOG_LEVEL_INFO, "focus: true");
     layer_mark_dirty(window_get_root_layer(s_main_window));
   }
 }
@@ -103,7 +103,7 @@ static void update_weather() {
       snprintf(temperature_buffer, sizeof(temperature_buffer), "%dC", (int)s_temp_c); // Celsius by default    
     }
     snprintf(weather_label_buffer, sizeof(weather_label_buffer), "%s\n%s", temperature_buffer, s_weather_condition);
-    APP_LOG(APP_LOG_LEVEL_INFO, "Weather: %s", weather_label_buffer);
+    //APP_LOG(APP_LOG_LEVEL_INFO, "Weather: %s", weather_label_buffer);
     text_layer_set_text(s_weather_label, weather_label_buffer);
   //}
 }
@@ -111,8 +111,7 @@ static void update_weather() {
 /* *** proc watch layer update *** */
 
 static void update_watch_layer (Layer *layer, GContext *ctx) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "update_watch_layer()");
-
+  //APP_LOG(APP_LOG_LEVEL_INFO, "update_watch_layer()");
   update_date();
   update_time();
 }
@@ -120,7 +119,7 @@ static void update_watch_layer (Layer *layer, GContext *ctx) {
 /* *** callbacks *** */
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "in inbox_received_callback");
+  //APP_LOG(APP_LOG_LEVEL_INFO, "in inbox_received_callback");
 
   // Read tuples for data
   Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
@@ -169,11 +168,11 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   if(temp_tuple && conditions_tuple) {
     s_temp_c = temp_tuple->value->int32;
     snprintf(s_weather_condition, sizeof(s_weather_condition), "%s", conditions_tuple->value->cstring);  
-    APP_LOG(APP_LOG_LEVEL_INFO, "weather update from tuple: %s %d", s_weather_condition, s_temp_c);
+    //APP_LOG(APP_LOG_LEVEL_INFO, "weather update from tuple: %s %d", s_weather_condition, s_temp_c);
     update_weather();
   }
-  
 }
+
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
   APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
 }
@@ -191,22 +190,17 @@ static void setup_callbacks() {
   app_message_register_outbox_sent(outbox_sent_callback);
 
   // Open AppMessage
-  //app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
   app_message_open(APP_MESSAGE_INBOX_SIZE_MINIMUM, APP_MESSAGE_OUTBOX_SIZE_MINIMUM);
 }
 
 /* *** Tick handlers *** */
 
-static void handle_second_tick(struct tm *tick_time, TimeUnits units_changed) {
-  if(tick_time->tm_sec % 20 == 0) {  
-    update_time();
-    //layer_mark_dirty(window_get_root_layer(s_main_window));
-  }
-}
-
-static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
-  // Update Health Steps every minute
-  
+static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {  
+  // Update Clock and Date
+  update_time();
+  update_date();
+    
+  // Update Health Steps 
   bool is_steps_enabled = persist_exists(KEY_IS_STEPS_ENABLED) ? persist_read_bool(KEY_IS_STEPS_ENABLED) : true;
   update_steps_label(is_steps_enabled);
   
@@ -222,40 +216,31 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
 /* *** main window load & unload *** */
 
 static void main_window_load(Window *window) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "main_window_load()");
+  //APP_LOG(APP_LOG_LEVEL_INFO, "main_window_load()");
 
   Layer *window_layer = window_get_root_layer(window);
   GRect bounds = layer_get_bounds(window_layer);
-  
-  // Read color code
-  setup_colors();
-  
+
   // Create Watch layer and add to main layer
   s_watch_layer = layer_create(bounds);
   layer_set_update_proc(s_watch_layer, update_watch_layer);
 
-
   // Create date layer
   s_date_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(115, 107), bounds.size.w, 24));
 
-  GColor color_date = GColorFromHEX(colorcode_date);
   text_layer_set_text(s_date_label, s_date_buffer);
   text_layer_set_background_color(s_date_label, GColorClear);
-  text_layer_set_text_color(s_date_label, color_date);
   s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_INFO_20));
   text_layer_set_font(s_date_label, s_date_font);
   text_layer_set_text_alignment(s_date_label, GTextAlignmentCenter);
-  layer_add_child(s_watch_layer, text_layer_get_layer(s_date_label));
+  //layer_add_child(s_watch_layer, text_layer_get_layer(s_date_label));
+  layer_add_child(window_layer, text_layer_get_layer(s_date_label));
   
   // Create weather and templature layer
   s_weather_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(28,22), bounds.size.w, 50));
-
-  GColor color_weather = GColorFromHEX(colorcode_weather);  
-  text_layer_set_background_color(s_weather_label, GColorClear);
-  text_layer_set_text_color(s_weather_label, color_weather);
-  text_layer_set_text_alignment(s_weather_label, GTextAlignmentCenter);
   text_layer_set_text(s_weather_label, "LOADING");
-  
+  text_layer_set_background_color(s_weather_label, GColorClear);
+  text_layer_set_text_alignment(s_weather_label, GTextAlignmentCenter);
   s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_INFO_20));
   text_layer_set_font(s_weather_label, s_weather_font);
   //layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_weather_label));
@@ -263,14 +248,11 @@ static void main_window_load(Window *window) {
   
   // Create Health Steps layer
   s_steps_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(138, 133), bounds.size.w, 24));
-  
-  GColor color_steps = GColorFromHEX(colorcode_steps);  
+  text_layer_set_text(s_steps_label, "00000");
   text_layer_set_background_color(s_steps_label, GColorClear);
-  text_layer_set_text_color(s_steps_label, color_steps);
   text_layer_set_text_alignment(s_steps_label, GTextAlignmentCenter);
   s_steps_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_INFO_20));
   text_layer_set_font(s_steps_label, s_steps_font);
-  text_layer_set_text(s_steps_label, "00000");
   layer_add_child(s_watch_layer, text_layer_get_layer(s_steps_label));
   
   // Create Bluetooth layer
@@ -282,21 +264,21 @@ static void main_window_load(Window *window) {
   bluetooth_callback(connection_service_peek_pebble_app_connection());
 
   // Create Clock Layer 
-  GColor color_clock = GColorFromHEX(colorcode_clock);
   s_clock_label = text_layer_create(GRect(0, bounds.size.h/2-42/2, bounds.size.w, 42));  
   text_layer_set_background_color(s_clock_label, GColorClear);
-  text_layer_set_text_color(s_clock_label, color_clock); // Set Clock Color
   text_layer_set_text_alignment(s_clock_label, GTextAlignmentCenter);
-  s_clock_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_CLOCK_42));
+  s_clock_font = fonts_load_custom_font(resource_get_handle(
+    PBL_IF_ROUND_ELSE(RESOURCE_ID_FONT_CLOCK_42, RESOURCE_ID_FONT_CLOCK_38)));
   text_layer_set_font(s_clock_label, s_clock_font);
-  layer_add_child(s_watch_layer, text_layer_get_layer(s_clock_label));
-  //update_time();
+  //layer_add_child(s_watch_layer, text_layer_get_layer(s_clock_label));
+  layer_add_child(window_layer, text_layer_get_layer(s_clock_label));
   
   layer_add_child(window_layer, s_watch_layer);
+  update_colors();
 }
 
 static void main_window_unload(Window *window) {  
-  APP_LOG(APP_LOG_LEVEL_INFO, "main_window_unload()");
+  //APP_LOG(APP_LOG_LEVEL_INFO, "main_window_unload()");
   
   fonts_unload_custom_font(s_clock_font);
   fonts_unload_custom_font(s_date_font);
@@ -314,13 +296,10 @@ static void main_window_unload(Window *window) {
 }
 
 static void init(void) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "init()");
+  //APP_LOG(APP_LOG_LEVEL_INFO, "init()");
 
   s_main_window = window_create();
-  
-  setup_colors();
-  GColor color_background = GColorFromHEX(colorcode_background);
-  window_set_background_color(s_main_window, color_background); 
+  window_set_background_color(s_main_window, GColorBlack); // default color, will be overwritten
 
   setup_callbacks();
   
@@ -342,12 +321,11 @@ static void init(void) {
   });
   
   // Subscribe Tick handlers
-  tick_timer_service_subscribe(SECOND_UNIT, handle_second_tick);
   tick_timer_service_subscribe(MINUTE_UNIT, handle_minute_tick);
 }
 
 static void deinit(void) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "deinit()");
+  //APP_LOG(APP_LOG_LEVEL_INFO, "deinit()");
   tick_timer_service_unsubscribe();
   connection_service_unsubscribe();
   app_focus_service_unsubscribe();
@@ -355,6 +333,7 @@ static void deinit(void) {
 }
 
 int main(void) {
+  //APP_LOG(APP_LOG_LEVEL_INFO, "main()");
   init();
   app_event_loop();
   deinit();
