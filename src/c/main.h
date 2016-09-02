@@ -14,6 +14,10 @@
 #define KEY_COLOR_WEATHER 13
 #define KEY_COLOR_DATE 14
 
+#define KEY_WEATHER_TEMP 20
+#define KEY_WEATHER_CONDITION 21
+#define KEY_WEATHER_LAST_UPDATED 22
+
 // Watch Configuration resources
 
 #define NUM_CLOCK_TICKS 8

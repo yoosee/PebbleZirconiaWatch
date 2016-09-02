@@ -16,7 +16,15 @@ static char s_date_buffer[12];
 static int s_temp_c;
 static char s_weather_condition[32];
 
+static bool s_js_ready;
+
 static int32_t colorcode_background, colorcode_clock, colorcode_steps, colorcode_weather, colorcode_date;
+
+/* *** *** */
+
+static bool comm_is_js_ready() {
+  return s_js_ready;
+}
 
 /* *** Color Configuration *** */
 
@@ -92,7 +100,7 @@ static void update_steps_label(bool is_enabled) {
 
 /* *** Update Weather *** */
 
-static void update_weather() {
+static void update_weather_label() {
   static char temperature_buffer[8];
   static char weather_label_buffer[32];
   
@@ -102,10 +110,29 @@ static void update_weather() {
     } else {
       snprintf(temperature_buffer, sizeof(temperature_buffer), "%dC", (int)s_temp_c); // Celsius by default    
     }
+  APP_LOG(APP_LOG_LEVEL_INFO, "update_weather_label(): %s (%s)", s_weather_condition, temperature_buffer);
+  if(strlen(s_weather_condition) <= 0) { // when data is still empty, possibly waiting for JSReady
+    snprintf(weather_label_buffer, sizeof(weather_label_buffer), "\nLOADING..");
+  } else if (strncmp("Unknown", s_weather_condition, 7) == 0) {  // when JS returned Unknown, most likely failed to fetch weather data
+      snprintf(weather_label_buffer, sizeof(weather_label_buffer), "\nUNKNOWN");
+  } else {
     snprintf(weather_label_buffer, sizeof(weather_label_buffer), "%s\n%s", temperature_buffer, s_weather_condition);
     //APP_LOG(APP_LOG_LEVEL_INFO, "Weather: %s", weather_label_buffer);
+  }
     text_layer_set_text(s_weather_label, weather_label_buffer);
   //}
+}
+
+static void update_weather() {
+  APP_LOG(APP_LOG_LEVEL_INFO, "update_weather()");
+  if (s_js_ready == false) {
+    APP_LOG(APP_LOG_LEVEL_INFO, "JSReady is not ready."); // TODO: should implement wait and retry, but now weather update called in 'ready' in JS.
+  }
+  DictionaryIterator *iter;
+  app_message_outbox_begin(&iter);
+  dict_write_uint8(iter, 0, 0);
+  app_message_outbox_send();
+  update_weather_label();
 }
 
 /* *** proc watch layer update *** */
@@ -120,6 +147,12 @@ static void update_watch_layer (Layer *layer, GContext *ctx) {
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
   //APP_LOG(APP_LOG_LEVEL_INFO, "in inbox_received_callback");
+  
+  // JSReady check
+  Tuple *ready_tuple = dict_find(iterator, MESSAGE_KEY_JSReady);
+  if(ready_tuple) {
+    s_js_ready = true;
+  }
 
   // Read tuples for data
   Tuple *temp_tuple = dict_find(iterator, MESSAGE_KEY_TEMPERATURE);
@@ -161,7 +194,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     } else {
       persist_write_bool(KEY_IS_FAHRENHEIT, false);
     }
-    update_weather();
+    update_weather_label();
     layer_mark_dirty(window_get_root_layer(s_main_window));
   }
   
@@ -169,7 +202,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     s_temp_c = temp_tuple->value->int32;
     snprintf(s_weather_condition, sizeof(s_weather_condition), "%s", conditions_tuple->value->cstring);  
     //APP_LOG(APP_LOG_LEVEL_INFO, "weather update from tuple: %s %d", s_weather_condition, s_temp_c);
-    update_weather();
+    update_weather_label();
   }
 }
 
@@ -206,10 +239,7 @@ static void handle_minute_tick(struct tm *tick_time, TimeUnits units_changed) {
   
   // Get weather update every WEATHER_UPDATE_INTERVAL_MINUTES minutes. default would be 30 min (0 and 30 of each hour)
   if(tick_time->tm_min % WEATHER_UPDATE_INTERVAL_MINUTES == 0) { 
-    DictionaryIterator *iter;
-    app_message_outbox_begin(&iter);
-    dict_write_uint8(iter, 0, 0);
-    app_message_outbox_send();
+    update_weather();
   }
 }
 
@@ -233,8 +263,7 @@ static void main_window_load(Window *window) {
   s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_INFO_20));
   text_layer_set_font(s_date_label, s_date_font);
   text_layer_set_text_alignment(s_date_label, GTextAlignmentCenter);
-  //layer_add_child(s_watch_layer, text_layer_get_layer(s_date_label));
-  layer_add_child(window_layer, text_layer_get_layer(s_date_label));
+  layer_add_child(s_watch_layer, text_layer_get_layer(s_date_label));
   
   // Create weather and templature layer
   s_weather_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(28,22), bounds.size.w, 50));
@@ -243,8 +272,8 @@ static void main_window_load(Window *window) {
   text_layer_set_text_alignment(s_weather_label, GTextAlignmentCenter);
   s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_INFO_20));
   text_layer_set_font(s_weather_label, s_weather_font);
-  //layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_weather_label));
   layer_add_child(s_watch_layer, text_layer_get_layer(s_weather_label));
+  update_weather();
   
   // Create Health Steps layer
   s_steps_label = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(138, 133), bounds.size.w, 24));
@@ -259,8 +288,9 @@ static void main_window_load(Window *window) {
   s_bt_icon_bitmap = gbitmap_create_with_resource(RESOURCE_ID_BLUETOOTH_DISCONNECTED_ICON);
   s_bt_icon_layer = bitmap_layer_create(GRect(bounds.size.h/2-10, PBL_IF_ROUND_ELSE(5, 6), 20, 20)); // 20x20 size icon
   bitmap_layer_set_bitmap(s_bt_icon_layer, s_bt_icon_bitmap);
+  bitmap_layer_set_background_color(s_bt_icon_layer, GColorClear);
   layer_add_child(s_watch_layer, bitmap_layer_get_layer(s_bt_icon_layer));
-  // Show the correct state of the BT connection from the start
+    // Show the correct state of the BT connection from the start
   bluetooth_callback(connection_service_peek_pebble_app_connection());
 
   // Create Clock Layer 
@@ -270,8 +300,8 @@ static void main_window_load(Window *window) {
   s_clock_font = fonts_load_custom_font(resource_get_handle(
     PBL_IF_ROUND_ELSE(RESOURCE_ID_FONT_CLOCK_42, RESOURCE_ID_FONT_CLOCK_38)));
   text_layer_set_font(s_clock_label, s_clock_font);
-  //layer_add_child(s_watch_layer, text_layer_get_layer(s_clock_label));
-  layer_add_child(window_layer, text_layer_get_layer(s_clock_label));
+  layer_add_child(s_watch_layer, text_layer_get_layer(s_clock_label));
+  //layer_add_child(window_layer, text_layer_get_layer(s_clock_label));
   
   layer_add_child(window_layer, s_watch_layer);
   update_colors();

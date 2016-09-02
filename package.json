@@ -20,7 +20,8 @@
             "COLOR_CLOCK",
             "COLOR_STEPS",
             "COLOR_WEATHER",
-            "COLOR_DATE"
+            "COLOR_DATE",
+            "JSReady"
         ],
         "projectType": "native",
         "resources": {
@@ -34,12 +35,12 @@
                 {
                     "characterRegex": "[0-9: ]",
                     "file": "fonts/Flipbash.otf",
-                    "name": "FONT_CLOCK_38",
+                    "name": "FONT_CLOCK_42",
                     "targetPlatforms": null,
                     "type": "font"
                 },
                 {
-                    "characterRegex": "[0-9A-Z: ]",
+                    "characterRegex": "[0-9A-Z:\\. ]",
                     "file": "fonts/Flipbash.otf",
                     "name": "FONT_INFO_20",
                     "targetPlatforms": null,
@@ -48,7 +49,7 @@
                 {
                     "characterRegex": "[0-9: ]",
                     "file": "fonts/Flipbash.otf",
-                    "name": "FONT_CLOCK_42",
+                    "name": "FONT_CLOCK_38",
                     "targetPlatforms": null,
                     "type": "font"
                 }
