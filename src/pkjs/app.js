@@ -7,12 +7,25 @@ var dataStore = {
   weather_service: WEATHER_SERVICE_GOV, // default provider
   openWeather_apikey: "40ed40883f0964911396ea2c04020029",
   wu_apikey: "", // WUnderground is billed service, while it has $0 plan.
+  max_retry: 3, // number of retries in xhr.onerror
 };
+
+var retries = dataStore.max_retry;
 
 var xhrRequest = function (url, type, callback) {
   var xhr = new XMLHttpRequest();
-  xhr.onload = function () {
-    callback(this.responseText);
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      callback(this.responseText);  
+    } else if (xhr.status === 0) { // retries
+      retries--;
+      if (retries > 0) {
+        console.log('Retrying XHR ' + retries + '/' + dataStore.max_retry);
+        xhrRequest(url, type, callback);
+      } else {
+        console.log('Max retry XHR exeeded ' + retries + '/' + dataStore.max_retry);
+      }
+    }
   };
   xhr.open(type, url);
   xhr.send();
