@@ -32,12 +32,14 @@ var xhrRequest = function (url, type, callback) {
 };
 
 var locationSuccess = function(pos) {
+  var lat = pos.coords.latitude;
+  var lon = pos.coords.longitude;
   if (dataStore.weather_service == WEATHER_SERVICE_GOV) {
-    fetchWeatherGovWeather(pos.coords.latitude, pos.coords.longitude);
+    fetchWeatherGovWeather(lat, lon);
   } else if (dataStore.weather_service == WEATHER_SERVICE_OPENWEATHER) {
-    fetchOpenWeather(pos.coords.latitude, pos.coords.longitude);
+    fetchOpenWeather(lat, lon);
   } else if (dataStore.weather_service == WEATHER_SERVICE_WUNDERGROUND) {
-    fetchWUWeather(pos.coords.latitude, pos.coords.longitude);
+    fetchWUWeather(lat, lon);
   }
   
 };
@@ -61,7 +63,7 @@ var send_weather_to_pebble = function(temperature, conditions) {
 };
 
 var getWeather = function() {
-  if ((Date.now() - localStorage.getItem('weather_last_updated')) > 10 * 60 * 1000 ){ // cache data for 10 min
+  if ((Date.now() - localStorage.getItem('weather_last_updated')) > 10 * 60 * 1000 || localStorage.getItem('current_conditions') == null || localStorage.getItem('current_conditions') == "" ){ // cache data for 10 min if data available
     console.log('Updating Weather');
     localStorage.setItem('weather_last_updated', Date.now());
     navigator.geolocation.getCurrentPosition(
@@ -81,7 +83,7 @@ var fetchWeather = function(params) {
   xhrRequest(params.url, 'GET', function(responseText){
     var weather = params.parse(responseText);
     
-    if(weather.conditions === "") {
+    if(weather.conditions == undefined || !weather.conditions  || weather.conditions == "") {
       if (dataStore.weather_service == WEATHER_SERVICE_GOV) {
         dataStore.weather_service = WEATHER_SERVICE_OPENWEATHER; // fallback from WG to OWM
         getWeather();
@@ -136,8 +138,10 @@ var fetchWeatherGovWeather = function(lat, lon) {
   console.log('URL: ' + params.url);
   params.parse = function(responseText) {
               var json = JSON.parse(responseText);
+              if (json.currentobservation == undefined) {
+                return { conditions: "" };
+              }
               var temperature = Math.round((json.currentobservation.Temp - 32.0) * 5 / 9 ); // F to C
-              //var conditions = json.currentobservation.Weather;
               var conditions = translateIconToWeather(json.currentobservation.Weatherimage);
               return {
                 conditions: conditions,
